@@ -46,15 +46,32 @@ LAB_2_LABELS = {
     'Коректність:': (10, 14),
     '': (80, 14)
 }
+LAB_3_CONSTANTS = {
+    'w': 64,
+    'r': 8,
+    'b': 32
+}
+LAB_3_LABELS = {
+    'Захешований пароль': (290, 0),
+    'Довжина слова (w)': (0, 0),
+    'Кількість раундів (r):': (0, 1),
+    'Довжина ключа (b):': (0, 2),
+    'Парольна фраза:': (0, 3)
+}
+LAB_3_SPINS = {
+    (16, 64, 64): 0,  # w
+    (0, 255, 8): 1,  # r
+    (0, 255, 32): 2  # b
+}
 WIDTH = 500
 HEIGHT = 400
 MULTIPLIER = 25
 
 
-def create_window(name):
+def create_window(name, width=WIDTH, height=HEIGHT):
     window = Tk()
     window.title(name)
-    window.geometry('{}x{}'.format(WIDTH, HEIGHT))
+    window.geometry('{}x{}'.format(width, height))
     return window
 
 
@@ -68,17 +85,17 @@ def place_labels(window, labels_info):
     return labels
 
 
-def place_spins(window, spins_info):
+def place_spins(window, spins_info, x=180, width=12):
     spins = []
     for vals, y_coord in spins_info.items():
         spin = Spinbox(
             window,
             from_=vals[0],
             to=vals[1],
-            width=12,
+            width=width,
             textvariable=IntVar(value=vals[2])
         )
-        spin.place(x=180, y=y_coord * MULTIPLIER)
+        spin.place(x=x, y=y_coord * MULTIPLIER)
         spins.append(spin)
 
     return spins

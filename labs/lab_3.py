@@ -1,5 +1,7 @@
 from labs import *
 from labs.md5 import MD5
+# from labs.rc5 import RC5
+from labs.rc5_test import RC5
 
 from tkinter import *
 from tkinter import messagebox
@@ -7,39 +9,83 @@ from tkinter.scrolledtext import *
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 
+def show_message_if_not_file(filename):
+    if not filename:
+        messagebox.showerror(
+            'Помилка завантаження файлу',
+            'Ви не обрали файл'
+        )
+        return False
+
+    return True
+
+
+def set_hashed_key(secret):
+    md5.set(secret)
+    key = md5.digest()
+    hashed.delete(0.0, END)
+    hashed.insert(END, key)
+    return key
+
+
+def endecrypt(decrypt=True):
+    w = int(spins[0].get())
+    r = int(spins[1].get())
+    b = int(spins[2].get())
+    secret = user_input.get()
+    key = set_hashed_key(secret)
+    rc5 = RC5(w, r, b, key)
+    func = rc5.decryptFile if decrypt else rc5.encryptFile
+    infile = askopenfilename(
+        parent=window,
+        title='File to encrypt'
+    )
+    if not show_message_if_not_file(infile):
+        return
+    outfile = asksaveasfilename(
+        parent=window,
+        defaultextension='.txt',
+        filetypes=[('Text document', '.txt')],
+        title='File to write encrypted data to'
+    )
+    if not show_message_if_not_file(outfile):
+        return
+    func(
+        inpFileName=infile,
+        outFileName=outfile
+    )
+
+
 def generate_objects():
-    pass
+    place_labels(window, LAB_3_LABELS)
+    return place_spins(window, LAB_3_SPINS, x=140, width=20)
 
 
 if __name__ == '__main__':
 
     window = create_window('LAB 3')
-    generate_objects()
+    spins = generate_objects()
 
-    user_input = ScrolledText(window, width=40, height=10)
-    user_input.place(x=0, y=20)
-    generated_md5 = ScrolledText(window, width=40, height=2)
-    generated_md5.place(x=0, y=210)
-    loaded_md5 = ScrolledText(window, width=40, height=2)
-    loaded_md5.place(x=0, y=285)
-    btn = Button(window, text='Згенерувати')
-    btn.place(x=350, y=20)
-    test_btn = Button(window, text='Тестувати')
-    test_btn.place(x=350, y=50)
-    btn = Button(window, text='Перевірити')
-    btn.place(x=350, y=80)
+    user_input = Entry(window, width=22)
+    user_input.place(x=140, y=75)
+    hashed = ScrolledText(window, width=20, height=5)
+    hashed.place(x=290, y=20)
+    btn = Button(
+        window, text='Зашифрувати файл', command=lambda: endecrypt(False)
+    )
+    btn.place(x=10, y=150)
+    test_btn = Button(
+        window, text='Дешифрувати файл', command=lambda: endecrypt()
+    )
+    test_btn.place(x=150, y=150)
 
-    hasher = MD5()
+    md5 = MD5()
     test_index = 0
-    current_md5_file = None
+    current_file = None
 
     menubar = Menu(window)
     filemenu = Menu(menubar, tearoff=0)
     filemenu.add_command(label="Відкрити файл")
-    filemenu.add_command(label='Відкрити MD5-файл')
-    filemenu.add_separator()
-    filemenu.add_command(label='Зберегти')
-    filemenu.add_command(label='Зберегти як...')
     filemenu.add_separator()
     filemenu.add_command(label="Вийти", command=window.quit)
     menubar.add_cascade(label="Файл", menu=filemenu)
