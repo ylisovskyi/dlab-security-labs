@@ -1,6 +1,8 @@
 from labs import *
 from labs.md5 import MD5
 
+import os
+
 from tkinter import *
 from tkinter import messagebox
 from tkinter.scrolledtext import *
@@ -38,8 +40,8 @@ def process_file():
     user_input.delete(0.0, END)
     filename = askopenfilename(parent=window)
     with open(filename, 'rb') as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            tmp_hasher.update(chunk)
+        file_size = os.stat(filename).st_size
+        tmp_hasher.set(f, file=True, file_size=file_size)
     result = tmp_hasher.hexdigest().upper()
     generated_md5.delete(0.0, END)
     generated_md5.insert(END, result)

@@ -11,10 +11,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 def show_message_if_not_file(filename):
     if not filename:
-        messagebox.showerror(
-            'Помилка завантаження файлу',
-            'Ви не обрали файл'
-        )
+        messagebox.showerror('Помилка завантаження файлу', 'Ви не обрали файл')
         return False
 
     return True

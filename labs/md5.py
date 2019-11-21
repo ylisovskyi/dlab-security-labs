@@ -1,4 +1,5 @@
 from labs.list import *
+import os
 
 
 class MD5:
@@ -47,8 +48,8 @@ class MD5:
         self.__list = LinkedList(None)
         if arg:
             self.__list.add(Node(arg, None))
-        self.__hash(self.__list.to_string())
-
+            self.__hash(self.__list.to_string())
+        self.length = 0
         self.digest_size = 16
 
     def set_defaults(self):
@@ -59,16 +60,12 @@ class MD5:
 
         self.__list = LinkedList(None)
 
-    def set(self, arg):
+    def set(self, arg, file=False, file_size=None):
         self.set_defaults()
-        self.__list = LinkedList(None)
-        self.__list.add(Node(arg, None))
-        self.__hash(self.__list.to_string())
+        self.__hash(arg, file, file_size)
 
-    def update(self, arg):
-        self.set_defaults()
-        self.__list.add(Node(arg, None))
-        self.__hash(self.__list.to_string())
+    def update(self, arg, last_block=None):
+        self.__hash(arg, last_block)
 
     def hexdigest(self):
         return ''.join(
@@ -96,8 +93,52 @@ class MD5:
 
         return res
 
-    def __hash(self, message):
+    def __hash(self, message, file=False, file_size=None):
         """Головна функція хешування MD5 """
+        if file:
+            chunks_count = (file_size // 64) + 1
+            print(chunks_count)
+            f, g, h, i, r = self.__f, self.__g, self.__h, self.__i, self.__r
+            for chunk_index in range(chunks_count):
+                print('{} out of {} chunks processed'.format(
+                    chunk_index + 1, chunks_count
+                ))
+                chunk = message.read(64)
+                chunk = self.__to_binary_string(chunk)
+                if chunk_index == chunks_count - 1:
+                    chunk = self.__pad(chunk, file_size)
+
+                words = self.__create_word_array(chunk, file_size, chunk_index == chunks_count - 1)
+                a, b, c, d = ca, cb, cc, cd = self.__A, self.__B, self.__C, self.__D
+                funcs = [f, g, h, i]
+                for j in range(4):
+                    for k in range(4):
+                        a = r(
+                            funcs[j], a, b, c, d, words[self.indices[j][k * 4]],
+                            self.Rs[j][0], self.T[j][k * 4]
+                        )
+                        d = r(
+                            funcs[j], d, a, b, c,
+                            words[self.indices[j][k * 4 + 1]],
+                            self.Rs[j][1], self.T[j][k * 4 + 1]
+                        )
+                        c = r(
+                            funcs[j], c, d, a, b,
+                            words[self.indices[j][k * 4 + 2]],
+                            self.Rs[j][2], self.T[j][k * 4 + 2]
+                        )
+                        b = r(
+                            funcs[j], b, c, d, a,
+                            words[self.indices[j][k * 4 + 3]],
+                            self.Rs[j][3], self.T[j][k * 4 + 3]
+                        )
+
+                self.__A = (a + ca) & 0xffffffff
+                self.__B = (b + cb) & 0xffffffff
+                self.__C = (c + cc) & 0xffffffff
+                self.__D = (d + cd) & 0xffffffff
+
+            return
         if isinstance(message, bytes):
             length = len(message)
         else:
@@ -146,10 +187,10 @@ class MD5:
             "{:08b}".format(byte) for byte in bytearray(string)
         )
 
-    def __pad(self, bstring):
+    def __pad(self, bstring, length=None):
         """Додає доповнення до повідомлення """
         padded = ''
-        length = len(bstring)
+        length = length or len(bstring)
 
         bstring += "1"
 
